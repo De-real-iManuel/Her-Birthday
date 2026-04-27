@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Princess 🎂</title>
+  <link rel="stylesheet" href="file/default.css">
+  <script src="file/jquery.min.js"></script>
+  <script src="file/jscex.min.js"></script>
+  <script src="file/jscex-parser.js"></script>
+  <script src="file/jscex-jit.js"></script>
+  <script src="file/jscex-builderbase.min.js"></script>
+  <script src="file/jscex-async.min.js"></script>
+  <script src="file/jscex-async-powerpack.min.js"></script>
+  <script src="file/function.js" charset="utf-8"></script>
+  <script src="file/love.js" charset="utf-8"></script>
+</head>
+<body>
+
+  <div id="clock-box">
+    <div id="countdown-label">🎂 Birthday Countdown 🎂</div>
+    <span id="clock"></span>
+  </div>
+
+  <div id="main">
+    <div id="error">Please open in <a href="https://www.google.com/chrome/">Chrome</a> or <a href="https://www.mozilla.org/firefox/">Firefox</a></div>
+
+    <audio id="myAudio" loop>
+      <source src="aud.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="wrap">
+      <div id="text">
+        <div id="code">
+          <span class="say">Hey Princess 💞</span><br>
+          <span class="say">Happy Birthday 🎈</span><br>
+          <span class="say">May God bless you 🍀</span><br>
+          <span class="say">And give you endless happiness 💕</span><br>
+          <span class="say">You're pretty awesome ❤️</span><br>
+          <span class="say">Sending love and good vibes 😏</span><br>
+          <span class="say">Hope today is magical 🎂😘</span><br>
+        </div>
+      </div>
+
+      <canvas id="canvas" width="1100" height="680"></canvas>
+    </div>
+  </div>
+
+  <!-- Photo gallery (shown after animation) -->
+  <div id="gallery">
+    <h2>💖 Our Princess 💖</h2>
+    <div class="photo-grid">
+      <img src="photos/photo1.jpg" alt="Princess" data-full="photos/photo1.jpg">
+      <img src="photos/photo2.jpg" alt="Princess" data-full="photos/photo2.jpg">
+      <img src="photos/photo3.jpg" alt="Princess" data-full="photos/photo3.jpg">
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox">
+    <span id="lightbox-close">&times;</span>
+    <img id="lightbox-img" src="" alt="Princess">
+  </div>
+
+  <script>
+  // ── Audio ────────────────────────────────────────────────────────
+  var audio = document.getElementById('myAudio');
+  var audioStarted = false;
+  function startAudio() {
+    if (!audioStarted) { audio.play().catch(function(){}); audioStarted = true; }
+  }
+
+  // ── Birthday check & countdown ───────────────────────────────────
+  var isBirthday = (new Date().getMonth() === 3 && new Date().getDate() === 28);
+
+  function updateCountdown() {
+    var now = new Date();
+    if (isBirthday) {
+      document.getElementById('clock').innerHTML = '🎉 <span class="digit">TODAY</span> is the day! Click the heart 💖';
+      return;
+    }
+    var birthday = new Date(now.getFullYear(), 3, 28);
+    if (now > birthday) birthday.setFullYear(birthday.getFullYear() + 1);
+    var diff = birthday - now;
+    var days    = Math.floor(diff / (1000 * 60 * 60 * 24));
+    var hours   = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    document.getElementById('clock').innerHTML =
+      '<span class="digit">' + days + '</span> days ' +
+      '<span class="digit">' + (hours   < 10 ? '0'+hours   : hours)   + '</span> hrs ' +
+      '<span class="digit">' + (minutes < 10 ? '0'+minutes : minutes) + '</span> min ' +
+      '<span class="digit">' + (seconds < 10 ? '0'+seconds : seconds) + '</span> sec';
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+
+  // ── Gallery reveal ───────────────────────────────────────────────
+  function showGallery() {
+    var gallery = document.getElementById('gallery');
+    gallery.style.display = 'block';
+    var imgs = gallery.querySelectorAll('img');
+    imgs.forEach(function(img, i) {
+      setTimeout(function() { img.classList.add('visible'); }, i * 300);
+    });
+  }
+
+  // ── Lightbox ─────────────────────────────────────────────────────
+  document.querySelector('.photo-grid').addEventListener('click', function(e) {
+    if (e.target.tagName === 'IMG') {
+      document.getElementById('lightbox-img').src = e.target.dataset.full;
+      document.getElementById('lightbox').classList.add('open');
+    }
+  });
+  document.getElementById('lightbox-close').addEventListener('click', function() {
+    document.getElementById('lightbox').classList.remove('open');
+  });
+  document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  // ── Canvas animation ─────────────────────────────────────────────
+  (function() {
+    var canvas = $('#canvas');
+
+    if (!canvas[0].getContext) {
+      $("#error").show();
+      return;
+    }
+
+    // Scale canvas to its CSS display size
+    var width  = canvas.parent().width();
+    var height = Math.round(width * 680 / 1100);
+    canvas.attr("width",  width);
+    canvas.attr("height", height);
+    canvas.css("height", height + "px");
+    $('#wrap').css("height", height + "px");
+
+    var opts = {
+      seed: {
+        x: width / 2 - 20,
+        color: "rgb(190, 26, 37)",
+        scale: 2
+      },
+      branch: [
+        [
+          width*0.486, height,
+          width*0.518, height*0.368,
+          width*0.454, height*0.294,
+          30, 100, [
+            [width*0.491, height*0.735, width*0.413, height*0.613, width*0.309, height*0.588, 13, 100, [
+              [width*0.409, height*0.640, width*0.394, height*0.632, width*0.358, height*0.581, 2, 40]
+            ]],
+            [width*0.500, height*0.654, width*0.545, height*0.524, width*0.618, height*0.507, 12, 100, [
+              [width*0.526, height*0.588, width*0.589, height*0.601, width*0.601, height*0.626, 3, 80]
+            ]],
+            [width*0.490, height*0.413, width*0.488, height*0.365, width*0.485, height*0.319, 3, 40],
+            [width*0.496, height*0.584, width*0.375, height*0.363, width*0.298, height*0.359, 9, 80, [
+              [width*0.388, height*0.421, width*0.348, height*0.372, width*0.337, height*0.301, 2, 40],
+              [width*0.453, height*0.507, width*0.395, height*0.463, width*0.359, height*0.485, 4, 60]
+            ]],
+            [width*0.496, height*0.525, width*0.553, height*0.371, width*0.616, height*0.325, 6, 100, [
+              [width*0.536, height*0.431, width*0.587, height*0.407, width*0.589, height*0.398, 2, 80]
+            ]]
+          ]
+        ]
+      ],
+      bloom: {
+        num: 700,
+        width:  width,
+        height: height * 0.956,
+      },
+      footer: {
+        width: width * 1.09,
+        height: 5,
+        speed: 10,
+      }
+    };
+
+    var tree = new Tree(canvas[0], width, height, opts);
+    var seed = tree.seed;
+    var foot = tree.footer;
+    var hold = 1;
+
+    canvas.on('click', function(e) {
+      if (!isBirthday) return; // locked until April 28
+      startAudio();
+      var offset = canvas.offset(), x, y;
+      x = e.pageX - offset.left;
+      y = e.pageY - offset.top;
+      if (seed.hover(x, y)) {
+        hold = 0;
+        canvas.off("click").off("mousemove").removeClass('hand');
+      }
+    }).on('mousemove', function(e) {
+      if (!isBirthday) return;
+      var offset = canvas.offset(), x, y;
+      x = e.pageX - offset.left;
+      y = e.pageY - offset.top;
+      canvas.toggleClass('hand', seed.hover(x, y));
+    });
+
+    // Touch support for mobile
+    canvas[0].addEventListener('touchstart', function(e) {
+      if (!isBirthday) return;
+      startAudio();
+      var touch = e.touches[0];
+      var offset = canvas.offset();
+      var x = touch.pageX - offset.left;
+      var y = touch.pageY - offset.top;
+      if (seed.hover(x, y)) {
+        hold = 0;
+        canvas.off("click").off("mousemove").removeClass('hand');
+      }
+    }, { passive: true });
+
+    var seedAnimate = eval(Jscex.compile("async", function () {
+      seed.draw();
+      while (hold) { $await(Jscex.Async.sleep(10)); }
+      while (seed.canScale()) { seed.scale(0.95); $await(Jscex.Async.sleep(10)); }
+      while (seed.canMove())  { seed.move(0, 2); foot.draw(); $await(Jscex.Async.sleep(10)); }
+    }));
+
+    var growAnimate = eval(Jscex.compile("async", function () {
+      do { tree.grow(); $await(Jscex.Async.sleep(10)); } while (tree.canGrow());
+    }));
+
+    var flowAnimate = eval(Jscex.compile("async", function () {
+      do { tree.flower(2); $await(Jscex.Async.sleep(10)); } while (tree.canFlower());
+    }));
+
+    var moveAnimate = eval(Jscex.compile("async", function () {
+      tree.snapshot("p1", Math.round(width*0.218), 0, Math.round(width*0.554), height);
+      while (tree.move("p1", Math.round(width*0.454), 0)) {
+        foot.draw();
+        $await(Jscex.Async.sleep(10));
+      }
+      foot.draw();
+      tree.snapshot("p2", Math.round(width*0.454), 0, Math.round(width*0.554), height);
+      canvas.parent().css("background", "url(" + tree.toDataURL('image/png') + ") center/cover");
+      canvas.css("background", "#ffe");
+      $await(Jscex.Async.sleep(300));
+      canvas.css("background", "none");
+    }));
+
+    var textAnimate = eval(Jscex.compile("async", function () {
+      $("#code").show().typewriter();
+    }));
+
+    var galleryAnimate = eval(Jscex.compile("async", function () {
+      $await(Jscex.Async.sleep(4000));
+      showGallery();
+    }));
+
+    var runAsync = eval(Jscex.compile("async", function () {
+      $await(seedAnimate());
+      $await(growAnimate());
+      $await(flowAnimate());
+      $await(moveAnimate());
+      textAnimate().start();
+      galleryAnimate().start();
+    }));
+
+    runAsync().start();
+  })();
+  </script>
+</body>
+</html>
