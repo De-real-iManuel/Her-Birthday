@@ -67,8 +67,23 @@
   var audio = document.getElementById('myAudio');
   var audioStarted = false;
   function startAudio() {
-    if (!audioStarted) { audio.play().catch(function(){}); audioStarted = true; }
+    if (!audioStarted) {
+      audio.play().then(function() {
+        audioStarted = true;
+      }).catch(function(){});
+    }
   }
+
+  // Unlock audio on first touch anywhere (mobile browsers require this)
+  document.addEventListener('touchstart', function unlockAudio() {
+    startAudio();
+    document.removeEventListener('touchstart', unlockAudio);
+  }, { passive: true });
+
+  document.addEventListener('click', function unlockAudioClick() {
+    startAudio();
+    document.removeEventListener('click', unlockAudioClick);
+  });
 
   // ── Birthday check & countdown ───────────────────────────────────
   var isBirthday = (new Date().getMonth() === 3 && new Date().getDate() === 28);
